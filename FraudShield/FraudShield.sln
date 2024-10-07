@@ -1,0 +1,134 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3D0B0E70-4107-41EE-BFC3-87ECD0FDEEAE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{12FC789B-AD18-4B9C-B0CE-AD0BF960B9EF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TransactionAnalysis", "TransactionAnalysis", "{9891EFBF-9911-4E10-AE3E-4B80B005D764}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.TransactionAnalysis.API", "src\Services\TransactionAnalysis\FraudShield.TransactionAnalysis.API\FraudShield.TransactionAnalysis.API.csproj", "{920E7AAE-0E12-4A2D-96C9-AB36231808EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.TransactionAnalysis.Application", "src\Services\TransactionAnalysis\FraudShield.TransactionAnalysis.Application\FraudShield.TransactionAnalysis.Application.csproj", "{1E03108D-7690-4CDF-B01F-A67ADF64C0A6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.TransactionAnalysis.Domain", "src\Services\TransactionAnalysis\FraudShield.TransactionAnalysis.Domain\FraudShield.TransactionAnalysis.Domain.csproj", "{0F659E33-14B9-4DE1-ABA6-7BBDBDE208DB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.TransactionAnalysis.Infrastructure", "src\Services\TransactionAnalysis\FraudShield.TransactionAnalysis.Infrastructure\FraudShield.TransactionAnalysis.Infrastructure.csproj", "{5B650440-72B7-4E0D-AA34-E320A3A7E27F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ApiGateway", "ApiGateway", "{029F3399-AEE8-4E08-8A9B-F148F3C2FC42}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.ApiGateway", "src\ApiGateway\FraudShield.ApiGateway\FraudShield.ApiGateway.csproj", "{ACC5560B-ACFD-4EA8-B243-FD6E445BF1A5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BuildingBlocks", "BuildingBlocks", "{23F834DE-C6DF-477F-B1A3-F3C623B88747}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.EventBus", "src\BuildingBlocks\FraudShield.EventBus\FraudShield.EventBus.csproj", "{DAAE997E-3D41-4182-A227-CACA0AFDBAB6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.SharedKernel", "src\BuildingBlocks\FraudShield.SharedKernel\FraudShield.SharedKernel.csproj", "{95447996-A8AC-42A6-868B-CE7FC38670D5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.Resilience", "src\BuildingBlocks\FraudShield.Resilience\FraudShield.Resilience.csproj", "{09135133-5761-41D9-B681-A169A0383772}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.Observability", "src\BuildingBlocks\FraudShield.Observability\FraudShield.Observability.csproj", "{06DAFBDD-E026-4737-AD9C-6DA01CD2498E}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MachineLearning", "MachineLearning", "{82C5FA02-2AFE-4AA8-A894-ED6A1D5CED5C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.MachineLearning", "src\MachineLearning\FraudShield.MachineLearning\FraudShield.MachineLearning.csproj", "{F2CA5DC9-8F93-4659-BB27-B48D78319774}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{7F5690A6-7DDD-456A-8071-4689F5BF7732}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{583851A5-CA43-4198-A337-1482FB107DF8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TransactionAnalysis", "TransactionAnalysis", "{4924BED6-2A3D-4F2A-A8A9-9D114D39DE16}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.TransactionAnalysis.UnitTests", "tests\Services\TransactionAnalysis\FraudShield.TransactionAnalysis.UnitTests\FraudShield.TransactionAnalysis.UnitTests.csproj", "{221EC948-C4CE-4ABA-B130-96222F8A9CC4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.TransactionAnalysis.IntegrationTests", "tests\Services\TransactionAnalysis\FraudShield.TransactionAnalysis.IntegrationTests\FraudShield.TransactionAnalysis.IntegrationTests.csproj", "{07B5604E-C1E2-4C04-84BB-9EBC361442DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.TransactionAnalysis.FunctionalTests", "tests\Services\TransactionAnalysis\FraudShield.TransactionAnalysis.FunctionalTests\FraudShield.TransactionAnalysis.FunctionalTests.csproj", "{82C1E3AE-960B-411A-9C07-E84D9A933AE3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{920E7AAE-0E12-4A2D-96C9-AB36231808EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{920E7AAE-0E12-4A2D-96C9-AB36231808EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{920E7AAE-0E12-4A2D-96C9-AB36231808EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{920E7AAE-0E12-4A2D-96C9-AB36231808EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E03108D-7690-4CDF-B01F-A67ADF64C0A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E03108D-7690-4CDF-B01F-A67ADF64C0A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E03108D-7690-4CDF-B01F-A67ADF64C0A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E03108D-7690-4CDF-B01F-A67ADF64C0A6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0F659E33-14B9-4DE1-ABA6-7BBDBDE208DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F659E33-14B9-4DE1-ABA6-7BBDBDE208DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F659E33-14B9-4DE1-ABA6-7BBDBDE208DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F659E33-14B9-4DE1-ABA6-7BBDBDE208DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B650440-72B7-4E0D-AA34-E320A3A7E27F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B650440-72B7-4E0D-AA34-E320A3A7E27F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B650440-72B7-4E0D-AA34-E320A3A7E27F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B650440-72B7-4E0D-AA34-E320A3A7E27F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ACC5560B-ACFD-4EA8-B243-FD6E445BF1A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ACC5560B-ACFD-4EA8-B243-FD6E445BF1A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ACC5560B-ACFD-4EA8-B243-FD6E445BF1A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ACC5560B-ACFD-4EA8-B243-FD6E445BF1A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAAE997E-3D41-4182-A227-CACA0AFDBAB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAAE997E-3D41-4182-A227-CACA0AFDBAB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAAE997E-3D41-4182-A227-CACA0AFDBAB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAAE997E-3D41-4182-A227-CACA0AFDBAB6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95447996-A8AC-42A6-868B-CE7FC38670D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95447996-A8AC-42A6-868B-CE7FC38670D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95447996-A8AC-42A6-868B-CE7FC38670D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95447996-A8AC-42A6-868B-CE7FC38670D5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09135133-5761-41D9-B681-A169A0383772}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09135133-5761-41D9-B681-A169A0383772}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09135133-5761-41D9-B681-A169A0383772}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09135133-5761-41D9-B681-A169A0383772}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06DAFBDD-E026-4737-AD9C-6DA01CD2498E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06DAFBDD-E026-4737-AD9C-6DA01CD2498E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06DAFBDD-E026-4737-AD9C-6DA01CD2498E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06DAFBDD-E026-4737-AD9C-6DA01CD2498E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F2CA5DC9-8F93-4659-BB27-B48D78319774}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F2CA5DC9-8F93-4659-BB27-B48D78319774}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F2CA5DC9-8F93-4659-BB27-B48D78319774}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F2CA5DC9-8F93-4659-BB27-B48D78319774}.Release|Any CPU.Build.0 = Release|Any CPU
+		{221EC948-C4CE-4ABA-B130-96222F8A9CC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{221EC948-C4CE-4ABA-B130-96222F8A9CC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{221EC948-C4CE-4ABA-B130-96222F8A9CC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{221EC948-C4CE-4ABA-B130-96222F8A9CC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07B5604E-C1E2-4C04-84BB-9EBC361442DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07B5604E-C1E2-4C04-84BB-9EBC361442DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07B5604E-C1E2-4C04-84BB-9EBC361442DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07B5604E-C1E2-4C04-84BB-9EBC361442DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{82C1E3AE-960B-411A-9C07-E84D9A933AE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82C1E3AE-960B-411A-9C07-E84D9A933AE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82C1E3AE-960B-411A-9C07-E84D9A933AE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82C1E3AE-960B-411A-9C07-E84D9A933AE3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{12FC789B-AD18-4B9C-B0CE-AD0BF960B9EF} = {3D0B0E70-4107-41EE-BFC3-87ECD0FDEEAE}
+		{9891EFBF-9911-4E10-AE3E-4B80B005D764} = {12FC789B-AD18-4B9C-B0CE-AD0BF960B9EF}
+		{920E7AAE-0E12-4A2D-96C9-AB36231808EA} = {9891EFBF-9911-4E10-AE3E-4B80B005D764}
+		{1E03108D-7690-4CDF-B01F-A67ADF64C0A6} = {9891EFBF-9911-4E10-AE3E-4B80B005D764}
+		{0F659E33-14B9-4DE1-ABA6-7BBDBDE208DB} = {9891EFBF-9911-4E10-AE3E-4B80B005D764}
+		{5B650440-72B7-4E0D-AA34-E320A3A7E27F} = {9891EFBF-9911-4E10-AE3E-4B80B005D764}
+		{029F3399-AEE8-4E08-8A9B-F148F3C2FC42} = {3D0B0E70-4107-41EE-BFC3-87ECD0FDEEAE}
+		{ACC5560B-ACFD-4EA8-B243-FD6E445BF1A5} = {029F3399-AEE8-4E08-8A9B-F148F3C2FC42}
+		{23F834DE-C6DF-477F-B1A3-F3C623B88747} = {3D0B0E70-4107-41EE-BFC3-87ECD0FDEEAE}
+		{DAAE997E-3D41-4182-A227-CACA0AFDBAB6} = {23F834DE-C6DF-477F-B1A3-F3C623B88747}
+		{95447996-A8AC-42A6-868B-CE7FC38670D5} = {23F834DE-C6DF-477F-B1A3-F3C623B88747}
+		{09135133-5761-41D9-B681-A169A0383772} = {23F834DE-C6DF-477F-B1A3-F3C623B88747}
+		{06DAFBDD-E026-4737-AD9C-6DA01CD2498E} = {23F834DE-C6DF-477F-B1A3-F3C623B88747}
+		{82C5FA02-2AFE-4AA8-A894-ED6A1D5CED5C} = {3D0B0E70-4107-41EE-BFC3-87ECD0FDEEAE}
+		{F2CA5DC9-8F93-4659-BB27-B48D78319774} = {82C5FA02-2AFE-4AA8-A894-ED6A1D5CED5C}
+		{583851A5-CA43-4198-A337-1482FB107DF8} = {7F5690A6-7DDD-456A-8071-4689F5BF7732}
+		{4924BED6-2A3D-4F2A-A8A9-9D114D39DE16} = {583851A5-CA43-4198-A337-1482FB107DF8}
+		{221EC948-C4CE-4ABA-B130-96222F8A9CC4} = {4924BED6-2A3D-4F2A-A8A9-9D114D39DE16}
+		{07B5604E-C1E2-4C04-84BB-9EBC361442DC} = {4924BED6-2A3D-4F2A-A8A9-9D114D39DE16}
+		{82C1E3AE-960B-411A-9C07-E84D9A933AE3} = {4924BED6-2A3D-4F2A-A8A9-9D114D39DE16}
+	EndGlobalSection
+EndGlobal
