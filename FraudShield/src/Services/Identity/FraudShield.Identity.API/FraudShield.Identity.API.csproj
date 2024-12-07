@@ -8,6 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\FraudShield.Identity.Application\FraudShield.Identity.Application.csproj" />
+      <ProjectReference Include="..\FraudShield.Identity.Infrastructure\FraudShield.Identity.Infrastructure.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
       <Content Include="..\..\..\..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
