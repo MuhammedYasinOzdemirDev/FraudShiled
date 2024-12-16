@@ -6,4 +6,20 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Analytics\DataAnalysis\" />
+    <Folder Include="Analytics\FeatureProcessing\" />
+    <Folder Include="Commands\PredictFraud\" />
+    <Folder Include="Commands\TrainModel\" />
+    <Folder Include="Commands\UpdateModel\" />
+    <Folder Include="DTOs\" />
+    <Folder Include="IntegrationEvents\" />
+    <Folder Include="Queries\GetModelHistory\" />
+    <Folder Include="Queries\GetModelMetrics\" />
+    <Folder Include="Queries\GetPredictions\" />
+    <Folder Include="Services\Evaluation\" />
+    <Folder Include="Services\ModelTraining\" />
+    <Folder Include="Services\Prediction\" />
+  </ItemGroup>
+
 </Project>

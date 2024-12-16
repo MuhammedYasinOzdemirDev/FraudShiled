@@ -4,14 +4,14 @@
     "/Users/yasin/RiderProjects/FraudShiled/FraudShield/src/Services/TransactionAnalysis/FraudShield.TransactionAnalysis.Infrastructure/FraudShield.TransactionAnalysis.Infrastructure.csproj": {}
   },
   "projects": {
-    "/Users/yasin/RiderProjects/FraudShiled/FraudShield/src/Services/TransactionAnalysis/FraudShield.TransactionAnalysis.Infrastructure/FraudShield.TransactionAnalysis.Infrastructure.csproj": {
+    "/Users/yasin/RiderProjects/FraudShiled/FraudShield/src/Services/TransactionAnalysis/FraudShield.TransactionAnalysis.Domain/FraudShield.TransactionAnalysis.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/yasin/RiderProjects/FraudShiled/FraudShield/src/Services/TransactionAnalysis/FraudShield.TransactionAnalysis.Infrastructure/FraudShield.TransactionAnalysis.Infrastructure.csproj",
-        "projectName": "FraudShield.TransactionAnalysis.Infrastructure",
-        "projectPath": "/Users/yasin/RiderProjects/FraudShiled/FraudShield/src/Services/TransactionAnalysis/FraudShield.TransactionAnalysis.Infrastructure/FraudShield.TransactionAnalysis.Infrastructure.csproj",
+        "projectUniqueName": "/Users/yasin/RiderProjects/FraudShiled/FraudShield/src/Services/TransactionAnalysis/FraudShield.TransactionAnalysis.Domain/FraudShield.TransactionAnalysis.Domain.csproj",
+        "projectName": "FraudShield.TransactionAnalysis.Domain",
+        "projectPath": "/Users/yasin/RiderProjects/FraudShiled/FraudShield/src/Services/TransactionAnalysis/FraudShield.TransactionAnalysis.Domain/FraudShield.TransactionAnalysis.Domain.csproj",
         "packagesPath": "/Users/yasin/.nuget/packages/",
-        "outputPath": "/Users/yasin/RiderProjects/FraudShiled/FraudShield/src/Services/TransactionAnalysis/FraudShield.TransactionAnalysis.Infrastructure/obj/",
+        "outputPath": "/Users/yasin/RiderProjects/FraudShiled/FraudShield/src/Services/TransactionAnalysis/FraudShield.TransactionAnalysis.Domain/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "/Users/yasin/.nuget/NuGet/NuGet.Config"
@@ -37,6 +37,99 @@
       "frameworks": {
         "net8.0": {
           "targetAlias": "net8.0",
+          "dependencies": {
+            "FluentValidation": {
+              "target": "Package",
+              "version": "[11.11.0, )"
+            },
+            "MediatR": {
+              "target": "Package",
+              "version": "[12.4.1, )"
+            },
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.4, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.4, )"
+            },
+            "Npgsql.EntityFrameworkCore.PostgreSQL": {
+              "target": "Package",
+              "version": "[8.0.4, )"
+            }
+          },
+          "imports": [
+            "net461",
+            "net462",
+            "net47",
+            "net471",
+            "net472",
+            "net48",
+            "net481"
+          ],
+          "assetTargetFallback": true,
+          "warn": true,
+          "frameworkReferences": {
+            "Microsoft.NETCore.App": {
+              "privateAssets": "all"
+            }
+          },
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.302/PortableRuntimeIdentifierGraph.json"
+        }
+      }
+    },
+    "/Users/yasin/RiderProjects/FraudShiled/FraudShield/src/Services/TransactionAnalysis/FraudShield.TransactionAnalysis.Infrastructure/FraudShield.TransactionAnalysis.Infrastructure.csproj": {
+      "version": "1.0.0",
+      "restore": {
+        "projectUniqueName": "/Users/yasin/RiderProjects/FraudShiled/FraudShield/src/Services/TransactionAnalysis/FraudShield.TransactionAnalysis.Infrastructure/FraudShield.TransactionAnalysis.Infrastructure.csproj",
+        "projectName": "FraudShield.TransactionAnalysis.Infrastructure",
+        "projectPath": "/Users/yasin/RiderProjects/FraudShiled/FraudShield/src/Services/TransactionAnalysis/FraudShield.TransactionAnalysis.Infrastructure/FraudShield.TransactionAnalysis.Infrastructure.csproj",
+        "packagesPath": "/Users/yasin/.nuget/packages/",
+        "outputPath": "/Users/yasin/RiderProjects/FraudShiled/FraudShield/src/Services/TransactionAnalysis/FraudShield.TransactionAnalysis.Infrastructure/obj/",
+        "projectStyle": "PackageReference",
+        "configFilePaths": [
+          "/Users/yasin/.nuget/NuGet/NuGet.Config"
+        ],
+        "originalTargetFrameworks": [
+          "net8.0"
+        ],
+        "sources": {
+          "https://api.nuget.org/v3/index.json": {}
+        },
+        "frameworks": {
+          "net8.0": {
+            "targetAlias": "net8.0",
+            "projectReferences": {
+              "/Users/yasin/RiderProjects/FraudShiled/FraudShield/src/Services/TransactionAnalysis/FraudShield.TransactionAnalysis.Domain/FraudShield.TransactionAnalysis.Domain.csproj": {
+                "projectPath": "/Users/yasin/RiderProjects/FraudShiled/FraudShield/src/Services/TransactionAnalysis/FraudShield.TransactionAnalysis.Domain/FraudShield.TransactionAnalysis.Domain.csproj"
+              }
+            }
+          }
+        },
+        "warningProperties": {
+          "warnAsError": [
+            "NU1605"
+          ]
+        }
+      },
+      "frameworks": {
+        "net8.0": {
+          "targetAlias": "net8.0",
+          "dependencies": {
+            "Microsoft.EntityFrameworkCore": {
+              "target": "Package",
+              "version": "[8.0.4, )"
+            },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[8.0.4, )"
+            }
+          },
           "imports": [
             "net461",
             "net462",

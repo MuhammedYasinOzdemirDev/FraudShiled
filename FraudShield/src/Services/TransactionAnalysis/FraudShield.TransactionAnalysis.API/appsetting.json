@@ -1,0 +1,36 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Database=fraudshield_analytics;Username=fraudshield;Password=yourpassword",
+    "Redis": "localhost:6379"
+  },
+  "Kafka": {
+    "BootstrapServers": "localhost:9092",
+    "Topics": {
+      "Transactions": "fraudshield.transactions",
+      "AnalysisResults": "fraudshield.analysis.results"
+    }
+  },
+  "AnalysisSettings": {
+    "EnableRealTimeAnalysis": true,
+    "BatchSize": 100,
+    "AnalysisTimeout": "00:00:30",
+    "Thresholds": {
+      "HighRiskScore": 0.8,
+      "MediumRiskScore": 0.6,
+      "LowRiskScore": 0.4
+    }
+  },
+  "MLSettings": {
+    "ModelPath": "/models",
+    "EnableAutoRetraining": true,
+    "MinimumConfidenceScore": 0.7,
+    "RetainingInterval": "24:00:00"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
+  }
+}

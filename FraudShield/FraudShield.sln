@@ -9,8 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{12
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "TransactionAnalysis", "TransactionAnalysis", "{9891EFBF-9911-4E10-AE3E-4B80B005D764}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.TransactionAnalysis.API", "src\Services\TransactionAnalysis\FraudShield.TransactionAnalysis.API\FraudShield.TransactionAnalysis.API.csproj", "{920E7AAE-0E12-4A2D-96C9-AB36231808EA}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.TransactionAnalysis.Application", "src\Services\TransactionAnalysis\FraudShield.TransactionAnalysis.Application\FraudShield.TransactionAnalysis.Application.csproj", "{1E03108D-7690-4CDF-B01F-A67ADF64C0A6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.TransactionAnalysis.Domain", "src\Services\TransactionAnalysis\FraudShield.TransactionAnalysis.Domain\FraudShield.TransactionAnalysis.Domain.csproj", "{0F659E33-14B9-4DE1-ABA6-7BBDBDE208DB}"
@@ -47,6 +45,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.TransactionAnal
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.TransactionAnalysis.FunctionalTests", "tests\Services\TransactionAnalysis\FraudShield.TransactionAnalysis.FunctionalTests\FraudShield.TransactionAnalysis.FunctionalTests.csproj", "{82C1E3AE-960B-411A-9C07-E84D9A933AE3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnalyisisAPI", "src\Services\TransactionAnalysis\AnalyisisAPI\AnalyisisAPI.csproj", "{D3678618-FCBB-4556-8C4D-57FDE685D55D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,10 +56,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{920E7AAE-0E12-4A2D-96C9-AB36231808EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{920E7AAE-0E12-4A2D-96C9-AB36231808EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{920E7AAE-0E12-4A2D-96C9-AB36231808EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{920E7AAE-0E12-4A2D-96C9-AB36231808EA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1E03108D-7690-4CDF-B01F-A67ADF64C0A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1E03108D-7690-4CDF-B01F-A67ADF64C0A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E03108D-7690-4CDF-B01F-A67ADF64C0A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -108,11 +104,14 @@ Global
 		{82C1E3AE-960B-411A-9C07-E84D9A933AE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{82C1E3AE-960B-411A-9C07-E84D9A933AE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{82C1E3AE-960B-411A-9C07-E84D9A933AE3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3678618-FCBB-4556-8C4D-57FDE685D55D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3678618-FCBB-4556-8C4D-57FDE685D55D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3678618-FCBB-4556-8C4D-57FDE685D55D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3678618-FCBB-4556-8C4D-57FDE685D55D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{12FC789B-AD18-4B9C-B0CE-AD0BF960B9EF} = {3D0B0E70-4107-41EE-BFC3-87ECD0FDEEAE}
 		{9891EFBF-9911-4E10-AE3E-4B80B005D764} = {12FC789B-AD18-4B9C-B0CE-AD0BF960B9EF}
-		{920E7AAE-0E12-4A2D-96C9-AB36231808EA} = {9891EFBF-9911-4E10-AE3E-4B80B005D764}
 		{1E03108D-7690-4CDF-B01F-A67ADF64C0A6} = {9891EFBF-9911-4E10-AE3E-4B80B005D764}
 		{0F659E33-14B9-4DE1-ABA6-7BBDBDE208DB} = {9891EFBF-9911-4E10-AE3E-4B80B005D764}
 		{5B650440-72B7-4E0D-AA34-E320A3A7E27F} = {9891EFBF-9911-4E10-AE3E-4B80B005D764}
@@ -130,5 +129,6 @@ Global
 		{221EC948-C4CE-4ABA-B130-96222F8A9CC4} = {4924BED6-2A3D-4F2A-A8A9-9D114D39DE16}
 		{07B5604E-C1E2-4C04-84BB-9EBC361442DC} = {4924BED6-2A3D-4F2A-A8A9-9D114D39DE16}
 		{82C1E3AE-960B-411A-9C07-E84D9A933AE3} = {4924BED6-2A3D-4F2A-A8A9-9D114D39DE16}
+		{D3678618-FCBB-4556-8C4D-57FDE685D55D} = {9891EFBF-9911-4E10-AE3E-4B80B005D764}
 	EndGlobalSection
 EndGlobal
