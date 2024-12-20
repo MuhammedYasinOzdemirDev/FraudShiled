@@ -47,6 +47,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.TransactionAnal
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnalyisisAPI", "src\Services\TransactionAnalysis\AnalyisisAPI\AnalyisisAPI.csproj", "{D3678618-FCBB-4556-8C4D-57FDE685D55D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.TransactionAnalysis.ML", "src\Services\TransactionAnalysis\FraudShield.TransactionAnalysis.ML\FraudShield.TransactionAnalysis.ML.csproj", "{499DD8C5-2F5F-4957-B30C-E3653A904C95}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FraudShield.TransactionAnalysis.Shared", "src\Services\TransactionAnalysis\FraudShield.TransactionAnalysis.Shared\FraudShield.TransactionAnalysis.Shared.csproj", "{9F4427D8-E9B3-4FB5-9F07-988B289C58AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -108,6 +112,14 @@ Global
 		{D3678618-FCBB-4556-8C4D-57FDE685D55D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D3678618-FCBB-4556-8C4D-57FDE685D55D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D3678618-FCBB-4556-8C4D-57FDE685D55D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{499DD8C5-2F5F-4957-B30C-E3653A904C95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{499DD8C5-2F5F-4957-B30C-E3653A904C95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{499DD8C5-2F5F-4957-B30C-E3653A904C95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{499DD8C5-2F5F-4957-B30C-E3653A904C95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F4427D8-E9B3-4FB5-9F07-988B289C58AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F4427D8-E9B3-4FB5-9F07-988B289C58AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F4427D8-E9B3-4FB5-9F07-988B289C58AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F4427D8-E9B3-4FB5-9F07-988B289C58AE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{12FC789B-AD18-4B9C-B0CE-AD0BF960B9EF} = {3D0B0E70-4107-41EE-BFC3-87ECD0FDEEAE}
@@ -130,5 +142,7 @@ Global
 		{07B5604E-C1E2-4C04-84BB-9EBC361442DC} = {4924BED6-2A3D-4F2A-A8A9-9D114D39DE16}
 		{82C1E3AE-960B-411A-9C07-E84D9A933AE3} = {4924BED6-2A3D-4F2A-A8A9-9D114D39DE16}
 		{D3678618-FCBB-4556-8C4D-57FDE685D55D} = {9891EFBF-9911-4E10-AE3E-4B80B005D764}
+		{499DD8C5-2F5F-4957-B30C-E3653A904C95} = {9891EFBF-9911-4E10-AE3E-4B80B005D764}
+		{9F4427D8-E9B3-4FB5-9F07-988B289C58AE} = {9891EFBF-9911-4E10-AE3E-4B80B005D764}
 	EndGlobalSection
 EndGlobal
