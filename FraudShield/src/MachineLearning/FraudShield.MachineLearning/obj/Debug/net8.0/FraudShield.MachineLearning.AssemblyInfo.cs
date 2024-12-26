@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FraudShield.MachineLearning")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+aed771c3a24962191f09e03c2190291a181992fb")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+dea29f2133c091c2d174113569e29ef8bb557674")]
 [assembly: System.Reflection.AssemblyProductAttribute("FraudShield.MachineLearning")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FraudShield.MachineLearning")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
