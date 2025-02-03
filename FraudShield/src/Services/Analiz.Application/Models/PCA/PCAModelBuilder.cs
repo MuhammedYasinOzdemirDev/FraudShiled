@@ -1,56 +1,121 @@
-using Analiz.Application.Interfaces.ML;
-using Analiz.Domain.Entities.ML;
+using System;
+using System.Linq;
+using Microsoft.Extensions.Logging;
 using Microsoft.ML;
 using Microsoft.ML.Data;
-
-namespace Analiz.ML.Models.PCA;
+using Microsoft.ML.Transforms;
+using Microsoft.ML.Transforms.TimeSeries;
+using Analiz.Application.Exceptions;
+using Analiz.Application.Interfaces.ML;
+using Analiz.Application.Services;
+using Analiz.Domain.Entities.ML;
+using Analiz.Domain.Entities.ML.DataSet;
+using Analiz.ML.Models.PCA;
 
 public class PCAModelBuilder : IModelBuilder
 {
     private readonly MLContext _mlContext;
     private readonly PCAConfiguration _configuration;
+    private readonly ILogger<ModelService> _logger;
 
-    public PCAModelBuilder(MLContext mlContext, PCAConfiguration configuration)
+    public PCAModelBuilder(
+        MLContext mlContext,
+        PCAConfiguration configuration,
+        ILogger<ModelService> logger)
     {
-        _mlContext = mlContext ?? throw new ArgumentNullException(nameof(mlContext));
-        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+        _mlContext = mlContext;
+        _configuration = configuration;
+        _logger = logger;
     }
 
-    public IEstimator<ITransformer> BuildPipeline()
+public IEstimator<ITransformer> BuildPipeline()
+{
+    try
     {
-        try
-        {
-            // Concatenate feature columns into a single "Features" column
-            var featureColumns = _configuration.FeatureColumns.ToArray();
-            var pipeline = _mlContext.Transforms
-                .Concatenate("Features", featureColumns)
+        _logger.LogInformation("Building PCA pipeline...");
 
-                // Normalize features (Min-Max scaling)
-                .Append(_mlContext.Transforms.NormalizeMinMax(
-                    outputColumnName: "NormalizedFeatures",
-                    inputColumnName: "Features"))
+        // 0. (Opsiyonel) Custom mapping ile Time ve Amount özelliklerini oluşturun.
+        var timeMapping = _mlContext.Transforms.CustomMapping<CreditCardMLData, TimeFeatures>(
+            (input, output) =>
+            {
+                output.TimeSin = (float)Math.Sin(2 * Math.PI * input.Time / _configuration.TimeScaleFactor);
+                output.TimeCos = (float)Math.Cos(2 * Math.PI * input.Time / _configuration.TimeScaleFactor);
+                output.DayFeature = (float)((input.Time / (24 * 3600)) % 7);
+                output.HourFeature = (float)((input.Time / 3600) % 24);
+            },
+            "TimeFeatureMapping");
 
-                // Apply PCA to normalized features
-                .Append(_mlContext.Transforms.ProjectToPrincipalComponents(
-                    outputColumnName: "PCAFeatures",
-                    inputColumnName: "NormalizedFeatures",
-                    rank: _configuration.ComponentCount));
+        var amountMapping = _mlContext.Transforms.CustomMapping<CreditCardMLData, AmountFeatures>(
+            (input, output) =>
+            {
+                output.Amount = input.Amount;
+                output.Amount_normalized = (float)((input.Amount - _configuration.MinAmount) / (_configuration.MaxAmount - _configuration.MinAmount));
+                output.Amount_log = (float)Math.Log(input.Amount + 1);
+                output.LogAmount = output.Amount_log;
+            },
+            "AmountFeatureMapping");
 
-            // Add a Randomized PCA anomaly detection trainer
-            var randomizedPcaTrainer = _mlContext.AnomalyDetection.Trainers
-                .RandomizedPca(
-                    featureColumnName: "PCAFeatures",
-                    rank: _configuration.ComponentCount,
-                    ensureZeroMean: _configuration.StandardizeInput);
+        // 1. Feature hazırlama: Oluşturulan sütunları birleştirin.
+        // PCA için kullanacağınız sütun isimlerini (_configuration.FeatureColumns) custom mapping adımlarında oluşturduğunuz sütun isimleriyle uyumlu hale getirin.
+        var featurePipeline = timeMapping
+            .Append(amountMapping)
+            .Append(_mlContext.Transforms.Concatenate("Features", _configuration.FeatureColumns.ToArray()));
 
-            return pipeline.Append(randomizedPcaTrainer);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Error building PCA pipeline", ex);
-        }
+        // 2. Normalizasyon: "Features" sütunu üzerinde normalize uygulayın.
+        var normalizationPipeline = _mlContext.Transforms.NormalizeMeanVariance("Features");
+
+        // 3. PCA dönüşümü: Normalize edilmiş özellikleri daha düşük boyuta projekte edin.
+        var pcaPipeline = _mlContext.Transforms.ProjectToPrincipalComponents(
+            outputColumnName: "PCAFeatures",
+            inputColumnName: "Features",
+            rank: _configuration.ComponentCount,
+            exampleWeightColumnName: null);
+
+        // 4. Anomali Tespiti: PCAFeatures’e dayalı anomali skorunu hesaplamak için custom mapping kullanın.
+        var anomalyPipeline = _mlContext.Transforms.CustomMapping<PCAPredictionInput, PCAPredictionOutput>(
+            (input, output) =>
+            {
+                if (input.PCAFeatures != null)
+                {
+                    output.AnomalyScore = (float)Math.Sqrt(input.PCAFeatures.Sum(x => x * x));
+                    output.IsAnomaly = output.AnomalyScore > _configuration.AnomalyThreshold;
+                    output.Probability = 1.0f / (1.0f + (float)Math.Exp(-output.AnomalyScore));
+                    output.PredictedLabel = output.IsAnomaly;
+                    output.Score = output.AnomalyScore;
+                }
+                else
+                {
+                    output.AnomalyScore = 0;
+                    output.IsAnomaly = false;
+                    output.Probability = 0;
+                    output.PredictedLabel = false;
+                    output.Score = 0;
+                }
+            },
+            contractName: "AnomalyScoring");
+
+        // Tüm adımları birleştirin.
+        var completePipeline = featurePipeline
+            .Append(normalizationPipeline)
+            .Append(pcaPipeline)
+            .Append(anomalyPipeline);
+   
+
+        _logger.LogInformation("PCA pipeline built successfully");
+        return completePipeline;
     }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error building PCA pipeline");
+        throw;
+    }
+}
 
+    private float CalculateAnomalyScore(float[] pcaFeatures)
+    {
+        // Mahalanobis distance calculation
+        return (float)Math.Sqrt(pcaFeatures.Select(x => x * x).Sum());
+    }
 
     public ITransformer Train(IDataView trainingData)
     {
@@ -61,81 +126,73 @@ public class PCAModelBuilder : IModelBuilder
         }
         catch (Exception ex)
         {
-            throw new Exception("Error training PCA model", ex);
+            _logger.LogError(ex, "Error training PCA model");
+            throw;
         }
     }
-
     public void SaveModel(ITransformer model, string modelPath)
     {
-        try
-        {
-            _mlContext.Model.Save(model, null, modelPath);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Error saving model to path: {modelPath}", ex);
-        }
+        throw new NotImplementedException();
     }
 
     public ITransformer LoadModel(string modelPath)
     {
-        try
-        {
-            return _mlContext.Model.Load(modelPath, out _);
-        }
-        catch (Exception ex)
-        {
-            throw new Exception($"Error loading model from path: {modelPath}", ex);
-        }
+        throw new NotImplementedException();
     }
 
-    public ModelOutput Predict(IDataView data, ITransformer model)
+    private DataStatistics GetDataStatistics(IDataView data)
     {
-        try
+        var statistics = new DataStatistics();
+
+        // Her kolon için istatistikleri hesapla
+        foreach (var column in data.Schema)
         {
-            var transformedData = model.Transform(data);
-
-            var predictions = _mlContext.Data
-                .CreateEnumerable<PCAModelOutput>(transformedData, reuseRowObject: false);
-
-            var prediction = predictions.First();
-
-            return new ModelOutput
+            if (column.Type is NumberDataViewType)
             {
-                PredictedLabel = prediction.AnomalyScore > _configuration.AnomalyThreshold,
-                Score = (float)prediction.AnomalyScore,
-                Probability = 1f - ((float)prediction.AnomalyScore / ((float)_configuration.AnomalyThreshold * 2f))
-            };
+                var stats = _mlContext.Data.CreateEnumerable<CreditCardModelData>(data, reuseRowObject: false)
+                    .Select(x => GetPropertyValue(x, column.Name))
+                    .Where(x => !float.IsNaN(x))
+                    .ToList();
+
+                if (stats.Any())
+                {
+                    statistics.ColumnStatistics[column.Name] = new ColumnStatistics
+                    {
+                        Mean = stats.Average(),
+                        StdDev = (float)CalculateStdDev(stats),
+                        Min = stats.Min(),
+                        Max = stats.Max(),
+                        MissingCount = stats.Count(float.IsNaN),
+                        NonZeroCount = stats.Count(x => x != 0)
+                    };
+                }
+            }
         }
-        catch (Exception ex)
+
+        return statistics;
+    }
+
+    private void LogDataStatistics(DataStatistics statistics)
+    {
+        foreach (var (column, stats) in statistics.ColumnStatistics)
         {
-            throw new Exception("Error making prediction with PCA model", ex);
+            _logger.LogInformation(
+                "Column {Column} stats - Mean: {Mean:F2}, StdDev: {StdDev:F2}, " +
+                "Range: [{Min:F2}, {Max:F2}], Missing: {Missing}, NonZero: {NonZero}",
+                column, stats.Mean, stats.StdDev, stats.Min, stats.Max,
+                stats.MissingCount, stats.NonZeroCount);
         }
     }
 
-    public double CalculateExplainedVariance(ITransformer model, IDataView data)
+    private static float GetPropertyValue(CreditCardModelData data, string propertyName)
     {
-        try
-        {
-            var transformedData = model.Transform(data);
-            var pcaFeatures = _mlContext.Data
-                .CreateEnumerable<PCAModelOutput>(transformedData, reuseRowObject: false)
-                .Select(x => x.PCAFeatures)
-                .ToList();
+        return (float)data.GetType().GetProperty(propertyName)?.GetValue(data, null);
+    }
 
-            if (!pcaFeatures.Any())
-                return 0;
-
-            var totalVariance = pcaFeatures.Sum(f => f.Sum(x => x * x));
-            var explainedVariance = pcaFeatures
-                .Take(_configuration.ComponentCount)
-                .Sum(f => f.Sum(x => x * x));
-
-            return totalVariance > 0 ? explainedVariance / totalVariance : 0;
-        }
-        catch (Exception ex)
-        {
-            throw new Exception("Error calculating explained variance", ex);
-        }
+    private static double CalculateStdDev(IEnumerable<float> values)
+    {
+        var enumerable = values as float[] ?? values.ToArray();
+        var avg = enumerable.Average();
+        return Math.Sqrt(enumerable.Average(v => Math.Pow(v - avg, 2)));
     }
 }

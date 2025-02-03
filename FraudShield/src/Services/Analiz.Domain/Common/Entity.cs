@@ -7,9 +7,9 @@ public abstract class Entity:ISoftDelete
     private readonly List<DomainEvent> _domainEvents = new();
     public Guid Id { get; protected set; }
     public DateTime CreatedAt { get; set; }
-    public string CreatedBy { get; protected set; }
+    public string CreatedBy { get;  set; }
     public DateTime? LastModifiedAt { get; set; }
-    public string LastModifiedBy { get; protected set; }
+    public string LastModifiedBy { get; set; }
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
     public string DeletedBy { get; set; }

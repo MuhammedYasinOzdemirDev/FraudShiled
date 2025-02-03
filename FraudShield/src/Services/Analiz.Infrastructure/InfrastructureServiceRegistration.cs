@@ -1,3 +1,5 @@
+using Analiz.Application.Interfaces.Infrastructure;
+using Analiz.Infrastructure.Services;
 using FraudShield.TransactionAnalysis.Domain.Common;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,6 +17,7 @@ public static class InfrastructureServiceRegistration
         services.AddHostedService<PerformanceMonitoringJob>();
         services.AddHostedService<DataCleanupJob>();
         */
+       services.AddScoped<ITestDataService, TestDataService>();
         return services;
     }
 }

@@ -197,10 +197,11 @@ public class RiskScoringService : IRiskScoringService
         var evaluationResult = await _modelService.EvaluateModelAsync(new EvaluationRequest 
         { 
             ModelName = "RiskScoring",
+            Version = "v1",
+            ModelType = ModelType.LightGBM,
             EvaluationData = new List<TransactionData> { new() },
             Labels = new List<bool> { false }
         });
-
         return evaluationResult.Metrics.AUC;
     }
 

@@ -10,7 +10,7 @@ namespace Analiz.Persistence;
 
 public class ApplicationDbContext : DbContext
 {
-    private readonly IDomainEventService _domainEventService;
+    private readonly IDomainEventService? _domainEventService;
 
     // Transactions
     public DbSet<Transaction> Transactions { get; set; }
@@ -31,29 +31,24 @@ public class ApplicationDbContext : DbContext
     public DbSet<FeatureConfiguration> FeatureConfigurations { get; set; }
     public DbSet<FeatureImportance> FeatureImportance { get; set; }
 
-    public ApplicationDbContext(
-        DbContextOptions<ApplicationDbContext> options,
-        IDomainEventService domainEventService) : base(options)
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : base(options)
     {
-        _domainEventService = domainEventService;
     }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
-            // Domain Event'leri ignore et
             if (typeof(Entity).IsAssignableFrom(entityType.ClrType))
             {
                 modelBuilder.Entity(entityType.ClrType)
                     .Ignore(nameof(Entity.DomainEvents));
             }
 
-            // Soft Delete Filter ekle
             if (typeof(ISoftDelete).IsAssignableFrom(entityType.ClrType))
             {
                 entityType.AddSoftDeleteQueryFilter();
@@ -64,13 +59,9 @@ public class ApplicationDbContext : DbContext
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         UpdateAuditFields();
-
-        var events = GetDomainEvents();
-        var result = await base.SaveChangesAsync(cancellationToken);
-        await DispatchEvents(events);
-
-        return result;
+        return await base.SaveChangesAsync(cancellationToken);
     }
+
 
     private void UpdateAuditFields()
     {
@@ -80,10 +71,12 @@ public class ApplicationDbContext : DbContext
             {
                 case EntityState.Added:
                     entry.Entity.CreatedAt = DateTime.UtcNow;
+                    entry.Entity.CreatedBy =  "system";
                     break;
 
                 case EntityState.Modified:
                     entry.Entity.LastModifiedAt = DateTime.UtcNow;
+                    entry.Entity.LastModifiedBy = "system";
                     break;
             }
         }

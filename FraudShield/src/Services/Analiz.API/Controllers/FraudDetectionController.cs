@@ -1,4 +1,5 @@
 using Analiz.Application.Interfaces;
+using Analiz.Application.Services.Training;
 using Analiz.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,6 +11,7 @@ public class FraudDetectionController : ControllerBase
     private readonly IFraudDetectionService _fraudDetectionService;
     private readonly ILogger<FraudDetectionController> _logger;
 
+   
     public FraudDetectionController(
         IFraudDetectionService fraudDetectionService,
         ILogger<FraudDetectionController> logger)
@@ -17,6 +19,7 @@ public class FraudDetectionController : ControllerBase
         _fraudDetectionService = fraudDetectionService;
         _logger = logger;
     }
+
 
     [HttpPost("analyze")]
     public async Task<ActionResult<AnalysisResult>> AnalyzeTransaction(TransactionRequest request)

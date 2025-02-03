@@ -1,9 +1,22 @@
-namespace Analiz.Domain.Entities.ML.Evaluation;
+using FraudShield.TransactionAnalysis.Domain.Enums;
 
-public class EvaluationRequest
+namespace Analiz.Domain.Entities.ML.Evaluation;
+public record EvaluationRequest
 {
-    public string ModelName { get; set; }
-    public string Version { get; set; }
-    public List<TransactionData> EvaluationData { get; set; }
-    public List<bool> Labels { get; set; }
+    public required string ModelName { get; init; }
+    public required string Version { get; init; }
+    public required List<TransactionData> EvaluationData { get; init; }
+    public required ModelType ModelType { get; init; }
+    public required List<bool> Labels { get; init; }
+    
+    // Validation
+    public bool IsValid()
+    {
+        return !string.IsNullOrEmpty(ModelName)
+               && !string.IsNullOrEmpty(Version)
+               && EvaluationData != null 
+               && EvaluationData.Any()
+               && Labels != null
+               && Labels.Count == EvaluationData.Count;
+    }
 }

@@ -24,7 +24,7 @@ public class FeatureConfiguration : Entity
             : new Dictionary<string, double>();
     }
 
-    private FeatureConfiguration()
+    public FeatureConfiguration()
     {
         EnabledFeatures = new Dictionary<string, bool>();
         FeatureSettings = new Dictionary<string, FeatureSetting>();

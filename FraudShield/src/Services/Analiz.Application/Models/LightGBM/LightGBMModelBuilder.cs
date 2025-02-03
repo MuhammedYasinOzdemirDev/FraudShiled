@@ -1,83 +1,119 @@
 using Analiz.Application.Interfaces.ML;
+using Analiz.Application.Transform;
 using Analiz.Domain.Entities.ML;
+using Analiz.Domain.Entities.ML.DataSet;
+using Analiz.Domain.Entities.ML.Transaction;
+using Microsoft.Extensions.Logging;
 using Microsoft.ML;
 using Microsoft.ML.Trainers.FastTree;
+
 namespace Analiz.ML.Models.LightGBM;
 
 public class LightGBMModelBuilder : IModelBuilder
 {
     private readonly MLContext _mlContext;
     private readonly LightGBMConfiguration _configuration;
-    
+
+
     public LightGBMModelBuilder(MLContext mlContext, LightGBMConfiguration configuration)
     {
         _mlContext = mlContext ?? throw new ArgumentNullException(nameof(mlContext));
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
     }
-
-    public IEstimator<ITransformer> BuildPipeline()
+public IEstimator<ITransformer> BuildPipeline()
     {
         try
         {
-            var featureColumns = _configuration.FeatureColumns.ToArray();
-            var categoricalColumns = _configuration.FeatureColumns
-                .Where(IsCategoricalColumn)
-                .ToArray();
+            var transformations = new List<IEstimator<ITransformer>>();
+            var featureColumns = new List<string>();
 
-            // Create a list to hold all feature column names (both original and encoded)
-            var allFeatureColumns = new List<string>();
-            
-            // Add non-categorical columns directly
-            allFeatureColumns.AddRange(featureColumns.Except(categoricalColumns));
-
-            // Start building pipeline
-            IEstimator<ITransformer> pipeline = _mlContext.Transforms.Conversion.MapValueToKey("Label");
-
-            // Add one-hot encoding for categorical columns
-            if (categoricalColumns.Any())
-            {
-                foreach (var column in categoricalColumns)
+            // 1. Time features
+            transformations.Add(_mlContext.Transforms.CustomMapping<CreditCardMLData, TimeFeatures>(
+                (input, output) =>
                 {
-                    var encodedName = $"{column}_encoded";
-                    allFeatureColumns.Add(encodedName);
-                    
-                    pipeline = pipeline.Append(_mlContext.Transforms.Categorical.OneHotEncoding(
-                        outputColumnName: encodedName,
-                        inputColumnName: column));
-                }
+                    output.TimeSin = (float)Math.Sin(2 * Math.PI * input.Time / _configuration.TimeScaleFactor);
+                    output.TimeCos = (float)Math.Cos(2 * Math.PI * input.Time / _configuration.TimeScaleFactor);
+                    output.DayFeature = (float)(input.Time / (24 * 3600)) % 7;
+                    output.HourFeature = (float)(input.Time / 3600) % 24;
+                },
+                "TimeFeatureMapping"));
+            featureColumns.AddRange(new[] { "TimeSin", "TimeCos", "DayFeature", "HourFeature" });
+
+            // 2. Amount features
+            transformations.Add(_mlContext.Transforms.CustomMapping<CreditCardMLData, AmountFeatures>(
+                (input, output) =>
+                {
+                    output.Amount = input.Amount;
+                    output.Amount_normalized = (float)((input.Amount - _configuration.MinAmount) / 
+                        (_configuration.MaxAmount - _configuration.MinAmount));
+                    output.Amount_log = (float)Math.Log(input.Amount + 1);
+                    output.LogAmount = output.Amount_log;
+                },
+                "AmountFeatureMapping"));
+            featureColumns.AddRange(new[] { "Amount", "Amount_normalized", "LogAmount" });
+
+            // 3. V1-V28 features normalization
+            for (int i = 1; i <= 28; i++)
+            {
+                transformations.Add(_mlContext.Transforms.NormalizeMeanVariance(
+                    outputColumnName: $"V{i}_normalized",
+                    inputColumnName: $"V{i}",
+                    fixZero: true));
+                featureColumns.Add($"V{i}_normalized");
             }
 
-            // Concatenate all features into a single column
-            pipeline = pipeline.Append(_mlContext.Transforms.Concatenate("Features", allFeatureColumns.ToArray()));
+            // 4. Add sample weights if enabled
+            if (_configuration.UseClassWeights)
+            {
+                transformations.Add(_mlContext.Transforms.Conversion.MapValue(
+                    outputColumnName: "SampleWeight",
+                    inputColumnName: "Label",
+                    keyValuePairs: new[]
+                    {
+                        new KeyValuePair<bool, float>(false, (float)_configuration.ClassWeights["0"]),
+                        new KeyValuePair<bool, float>(true, (float)_configuration.ClassWeights["1"])
+                    }));
+            }
 
-            // Apply normalization to the concatenated features
-            pipeline = pipeline.Append(_mlContext.Transforms.NormalizeMinMax(
-                outputColumnName: "NormalizedFeatures",
-                inputColumnName: "Features"));
+            // 5. Feature concatenation
+            transformations.Add(_mlContext.Transforms.Concatenate("Features", featureColumns.ToArray()));
 
-            // Add FastTree trainer
-            var trainer = _mlContext.BinaryClassification.Trainers.FastTree(
-                labelColumnName: "Label",
-                featureColumnName: "NormalizedFeatures",
-                numberOfLeaves: _configuration.NumberOfLeaves,
-                numberOfTrees: _configuration.NumberOfTrees,
-                minimumExampleCountPerLeaf: _configuration.MinDataInLeaf,
-                learningRate: (float)_configuration.LearningRate);
+            // 6. FastTree trainer configuration
+            var trainerOptions = new FastTreeBinaryTrainer.Options
+            {
+                NumberOfLeaves = _configuration.NumberOfLeaves,
+                MinimumExampleCountPerLeaf = _configuration.MinDataInLeaf,
+                LearningRate = (float)_configuration.LearningRate,
+                NumberOfTrees = _configuration.NumberOfTrees,
+                FeatureFraction = (float)_configuration.FeatureFraction,
+                LabelColumnName = "Label",
+                FeatureColumnName = "Features"
+            };
 
-            return pipeline.Append(trainer);
+            // Add weight column to trainer if enabled
+            if (_configuration.UseClassWeights)
+            {
+                trainerOptions.ExampleWeightColumnName = "SampleWeight";
+            }
+
+            // Add the trainer
+            transformations.Add(_mlContext.BinaryClassification.Trainers.FastTree(trainerOptions));
+
+            // Build final pipeline
+            IEstimator<ITransformer> pipeline = transformations[0];
+            for (int i = 1; i < transformations.Count; i++)
+            {
+                pipeline = pipeline.Append(transformations[i]);
+            }
+
+            return pipeline;
         }
         catch (Exception ex)
         {
-            throw new Exception("Error building FastTree pipeline", ex);
+            throw new Exception("Error building LightGBM pipeline", ex);
         }
     }
 
-    private bool IsCategoricalColumn(string columnName)
-    {
-        return columnName.StartsWith("Category_") || 
-               columnName.EndsWith("_Type") || 
-               columnName.Contains("_Id");
-    }
 
     public ITransformer Train(IDataView trainingData)
     {
@@ -88,7 +124,7 @@ public class LightGBMModelBuilder : IModelBuilder
         }
         catch (Exception ex)
         {
-            throw new Exception("Error training FastTree model", ex);
+            throw new Exception("Error training model", ex);
         }
     }
 
@@ -97,21 +133,36 @@ public class LightGBMModelBuilder : IModelBuilder
         try
         {
             var transformedData = model.Transform(data);
-            var predictions = _mlContext.Data
-                .CreateEnumerable<FastTreePrediction>(transformedData, reuseRowObject: false)
+            var prediction = _mlContext.Data
+                .CreateEnumerable<LightGBMOutput>(transformedData, reuseRowObject: false)
                 .First();
+
+            // Calculate feature importance
+            var featureImportances = CalculateFeatureImportance(model, data);
 
             return new ModelOutput
             {
-                PredictedLabel = predictions.PredictedLabel,
-                Score = predictions.Score,
-                Probability = predictions.Probability
+                PredictedLabel = prediction.PredictedLabel,
+                Score = prediction.Score,
+                Probability = prediction.Probability,
+                Metadata = new Dictionary<string, object>
+                {
+                    ["ConfidenceScore"] = prediction.ConfidenceScore,
+                    ["UncertaintyScore"] = prediction.UncertaintyScore,
+                    ["TopFeatures"] = string.Join(",", prediction.TopContributingFeatures)
+                }
             };
         }
         catch (Exception ex)
         {
-            throw new Exception("Error making prediction", ex);
+            throw;
         }
+    }
+
+    private Dictionary<string, double> CalculateFeatureImportance(ITransformer model, IDataView data)
+    {
+        // Feature importance hesaplama mantığı
+        return new Dictionary<string, double>();
     }
 
     public void SaveModel(ITransformer model, string modelPath)

@@ -8,20 +8,21 @@ namespace Analiz.Persistence.Repositories;
 
 public class TransactionRepository : ITransactionRepository
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDbContextFactory<ApplicationDbContext> _contextFactory;
     private readonly ILogger<TransactionRepository> _logger;
 
     public TransactionRepository(
-        ApplicationDbContext context,
+        IDbContextFactory<ApplicationDbContext> contextFactory,
         ILogger<TransactionRepository> logger)
     {
-        _context = context;
+        _contextFactory = contextFactory;
         _logger = logger;
     }
 
     public async Task<Transaction> GetTransactionAsync(Guid transactionId)
     {
-        return await _context.Transactions
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        return await context.Transactions
             .Include(t => t.Details)
             .Include(t => t.DeviceInfo)
             .Include(t => t.Location)
@@ -31,11 +32,14 @@ public class TransactionRepository : ITransactionRepository
 
     public async Task<List<Transaction>> GetUserTransactionsAsync(string userId, TimeSpan period)
     {
+        await using var context = await _contextFactory.CreateDbContextAsync();
         var startDate = DateTime.UtcNow.Subtract(period);
-        
-        return await _context.Transactions
+    
+        return await context.Transactions
             .Include(t => t.RiskScore)
-            .Where(t => t.UserId == userId && t.TransactionTime >= startDate)
+            .Where(t => t.UserId == userId && 
+                        t.TransactionTime >= startDate &&
+                        !t.IsDeleted)  
             .OrderByDescending(t => t.TransactionTime)
             .ToListAsync();
     }
@@ -44,7 +48,8 @@ public class TransactionRepository : ITransactionRepository
         DateTime startDate, 
         DateTime endDate)
     {
-        return await _context.Transactions
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        return await context.Transactions
             .Include(t => t.RiskScore)
             .Where(t => t.TransactionTime >= startDate && t.TransactionTime <= endDate)
             .OrderByDescending(t => t.TransactionTime)
@@ -53,17 +58,18 @@ public class TransactionRepository : ITransactionRepository
 
     public async Task<Transaction> SaveTransactionAsync(Transaction transaction)
     {
-        await _context.Transactions.AddAsync(transaction);
-        await _context.SaveChangesAsync();
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        await context.Transactions.AddAsync(transaction);
+        await context.SaveChangesAsync();
         return transaction;
     }
 
-  
     public async Task<AnalysisResult> GetAnalysisResultAsync(Guid analysisId)
     {
         try
         {
-            var result = await _context.AnalysisResults
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var result = await context.AnalysisResults
                 .Include(a => a.RiskFactors)
                 .FirstOrDefaultAsync(a => a.Id == analysisId && !a.IsDeleted);
 
@@ -86,7 +92,8 @@ public class TransactionRepository : ITransactionRepository
     {
         try
         {
-            return await _context.FraudAlerts
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            return await context.FraudAlerts
                 .Include(a => a.RiskScore)
                 .Include(a => a.Factors)
                 .Where(a => a.Status == AlertStatus.Active && !a.IsDeleted)
@@ -104,20 +111,21 @@ public class TransactionRepository : ITransactionRepository
     {
         try
         {
-            var existingRule = await _context.FraudRules
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var existingRule = await context.FraudRules
                 .FirstOrDefaultAsync(r => r.RuleId == rule.RuleId && !r.IsDeleted);
 
             if (existingRule == null)
             {
-                _context.FraudRules.Add(rule);
+                context.FraudRules.Add(rule);
             }
             else
             {
                 existingRule.Update(rule);
-                _context.FraudRules.Update(existingRule);
+                context.FraudRules.Update(existingRule);
             }
 
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
             _logger.LogInformation("Successfully updated fraud rule: {RuleId}", rule.RuleId);
         }
         catch (DbUpdateConcurrencyException ex)
@@ -134,16 +142,18 @@ public class TransactionRepository : ITransactionRepository
  
     public async Task UpdateTransactionStatusAsync(Guid transactionId, TransactionStatus status)
     {
-        var transaction = await _context.Transactions.FindAsync(transactionId);
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var transaction = await context.Transactions.FindAsync(transactionId);
         if (transaction != null)
         {
             transaction.UpdateStatus(status);
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
     }
 
     public async Task<bool> ExistsAsync(Guid transactionId)
     {
-        return await _context.Transactions.AnyAsync(t => t.Id == transactionId);
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        return await context.Transactions.AnyAsync(t => t.Id == transactionId);
     }
 }

@@ -1,8 +1,26 @@
 {
   "version": 2,
-  "dgSpecHash": "BDxt/9gwQdtZPZmFpe/sFFcvACJ7m4PWb9Oqb+0Bhnv4Iw1+yXKnBozYBz4+VkAhYO/O7wzTy3XnazaYzRoraw==",
+  "dgSpecHash": "PKOtor046x8=",
   "success": true,
   "projectFilePath": "/Users/yasin/RiderProjects/FraudShiled/FraudShield/tests/Services/TransactionAnalysis/FraudShield.TransactionAnalysis.UnitTests/FraudShield.TransactionAnalysis.UnitTests.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "/Users/yasin/.nuget/packages/microsoft.entityframeworkcore/9.0.1/microsoft.entityframeworkcore.9.0.1.nupkg.sha512",
+    "/Users/yasin/.nuget/packages/microsoft.entityframeworkcore.abstractions/9.0.1/microsoft.entityframeworkcore.abstractions.9.0.1.nupkg.sha512",
+    "/Users/yasin/.nuget/packages/microsoft.entityframeworkcore.analyzers/9.0.1/microsoft.entityframeworkcore.analyzers.9.0.1.nupkg.sha512",
+    "/Users/yasin/.nuget/packages/microsoft.extensions.caching.abstractions/9.0.1/microsoft.extensions.caching.abstractions.9.0.1.nupkg.sha512",
+    "/Users/yasin/.nuget/packages/microsoft.extensions.caching.memory/9.0.1/microsoft.extensions.caching.memory.9.0.1.nupkg.sha512",
+    "/Users/yasin/.nuget/packages/microsoft.extensions.configuration.abstractions/9.0.1/microsoft.extensions.configuration.abstractions.9.0.1.nupkg.sha512",
+    "/Users/yasin/.nuget/packages/microsoft.extensions.configuration.binder/9.0.1/microsoft.extensions.configuration.binder.9.0.1.nupkg.sha512",
+    "/Users/yasin/.nuget/packages/microsoft.extensions.dependencyinjection/9.0.1/microsoft.extensions.dependencyinjection.9.0.1.nupkg.sha512",
+    "/Users/yasin/.nuget/packages/microsoft.extensions.dependencyinjection.abstractions/9.0.1/microsoft.extensions.dependencyinjection.abstractions.9.0.1.nupkg.sha512",
+    "/Users/yasin/.nuget/packages/microsoft.extensions.logging/9.0.1/microsoft.extensions.logging.9.0.1.nupkg.sha512",
+    "/Users/yasin/.nuget/packages/microsoft.extensions.logging.abstractions/9.0.1/microsoft.extensions.logging.abstractions.9.0.1.nupkg.sha512",
+    "/Users/yasin/.nuget/packages/microsoft.extensions.options/9.0.1/microsoft.extensions.options.9.0.1.nupkg.sha512",
+    "/Users/yasin/.nuget/packages/microsoft.extensions.options.configurationextensions/9.0.1/microsoft.extensions.options.configurationextensions.9.0.1.nupkg.sha512",
+    "/Users/yasin/.nuget/packages/microsoft.extensions.primitives/9.0.1/microsoft.extensions.primitives.9.0.1.nupkg.sha512",
+    "/Users/yasin/.nuget/packages/system.diagnostics.diagnosticsource/9.0.1/system.diagnostics.diagnosticsource.9.0.1.nupkg.sha512",
+    "/Users/yasin/.nuget/packages/microsoft.netcore.app.ref/8.0.12/microsoft.netcore.app.ref.8.0.12.nupkg.sha512",
+    "/Users/yasin/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.12/microsoft.aspnetcore.app.ref.8.0.12.nupkg.sha512"
+  ],
   "logs": []
 }

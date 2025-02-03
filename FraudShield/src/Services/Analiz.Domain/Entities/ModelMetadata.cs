@@ -11,18 +11,17 @@ public class ModelMetadata : Entity
     public string ModelName { get; private set; }
     public string Version { get; private set; }
     public ModelType Type { get; private set; }
-    
-    [NotMapped]
-    public Dictionary<string, double> Metrics { get; private set; }
-    
-    public string MetricsJson 
-    { 
+
+    [NotMapped] public Dictionary<string, double> Metrics { get; private set; }
+
+    public string MetricsJson
+    {
         get => Metrics != null ? JsonSerializer.Serialize(Metrics) : null;
-        private set => Metrics = !string.IsNullOrEmpty(value) 
-            ? JsonSerializer.Deserialize<Dictionary<string, double>>(value) 
+        private set => Metrics = !string.IsNullOrEmpty(value)
+            ? JsonSerializer.Deserialize<Dictionary<string, double>>(value)
             : new Dictionary<string, double>();
     }
-    
+
     public ModelStatus Status { get; private set; }
     public string Configuration { get; private set; }
     public DateTime TrainedAt { get; private set; }

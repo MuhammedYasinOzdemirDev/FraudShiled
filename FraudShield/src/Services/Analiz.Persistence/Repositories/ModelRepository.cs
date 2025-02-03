@@ -59,6 +59,9 @@ public class ModelRepository : IModelRepository
     public async Task SaveModelAsync(ModelMetadata metadata, ITransformer model)
     {
         // Model dosyasını kaydet
+        metadata.CreatedBy = "Yasin";
+        metadata.LastModifiedBy = "Yasin";
+        metadata.DeletedBy = "System";
         var modelPath = GetModelPath(metadata.ModelName, metadata.Version);
         await SaveModelFileAsync(model, modelPath);
 

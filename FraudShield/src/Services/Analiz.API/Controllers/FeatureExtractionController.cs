@@ -33,7 +33,7 @@ public class FeatureExtractionController : ControllerBase
         var features = await _featureService.ExtractBatchFeaturesAsync(data);
         return Ok(features);
     }
-
+/*
     [HttpGet("models/{modelName}/importance")]
     public async Task<ActionResult<FeatureImportance>> GetFeatureImportance(string modelName)
     {
@@ -41,7 +41,7 @@ public class FeatureExtractionController : ControllerBase
         if (importance == null)
             return NotFound();
         return Ok(importance);
-    }
+    }*/
 
     [HttpPut("configuration")]
     public async Task<ActionResult> UpdateConfiguration(FeatureConfig config)

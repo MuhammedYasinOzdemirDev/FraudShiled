@@ -5,5 +5,6 @@ public enum TransactionType
     Purchase,
     Withdrawal,
     Transfer,
-    Deposit
+    Deposit,
+    CreditCard
 }

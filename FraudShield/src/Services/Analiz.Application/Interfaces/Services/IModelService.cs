@@ -8,6 +8,7 @@ namespace Analiz.Application.Interfaces;
 public interface IModelService
 {
     Task<TrainingResult> TrainModelAsync(TrainingRequest request);
+    Task<TrainingResult> TrainEnsembleModelAsync(TrainingRequest request);
     Task<EvaluationResult> EvaluateModelAsync(EvaluationRequest request);
     Task<ModelMetrics> GetModelMetricsAsync(string modelName);
     Task<bool> UpdateModelAsync(string modelName, ModelUpdateRequest request);

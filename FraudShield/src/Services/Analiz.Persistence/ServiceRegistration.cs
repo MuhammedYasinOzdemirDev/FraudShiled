@@ -13,10 +13,8 @@ public static class ServiceRegistration
         IConfiguration configuration)
     {
         services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(
-                configuration.GetConnectionString("DefaultConnection"),
-                b => b.MigrationsAssembly("Analiz.Persistence")
-            ));
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"),
+                b => b.MigrationsAssembly("Analiz.API")));
         return services;
     }
 }
