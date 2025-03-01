@@ -1,8 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "/P2FPXrI8jWhR92Li/gJvuFDpIyghRXctu3LJh6O0g6FYtXM1W+dMm8WqKn0bLcGCWwDeX+vkh6+p5gfEYr5Ow==",
+  "dgSpecHash": "Rdb60pooeG8=",
   "success": true,
   "projectFilePath": "/Users/yasin/RiderProjects/FraudShiled/FraudShield/src/BuildingBlocks/FraudShield.SharedKernel/FraudShield.SharedKernel.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "/Users/yasin/.nuget/packages/microsoft.netcore.app.ref/8.0.12/microsoft.netcore.app.ref.8.0.12.nupkg.sha512",
+    "/Users/yasin/.nuget/packages/microsoft.aspnetcore.app.ref/8.0.12/microsoft.aspnetcore.app.ref.8.0.12.nupkg.sha512"
+  ],
   "logs": []
 }

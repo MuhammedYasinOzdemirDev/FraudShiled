@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FraudShield.TransactionAnalysis.IntegrationTests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+63aa3d3be793f422b3feb185bfb5c0a6ff0b3696")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+671aee73650eafef7b76f83762cb92e36783056d")]
 [assembly: System.Reflection.AssemblyProductAttribute("FraudShield.TransactionAnalysis.IntegrationTests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FraudShield.TransactionAnalysis.IntegrationTests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

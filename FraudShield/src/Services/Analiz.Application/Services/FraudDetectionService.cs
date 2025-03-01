@@ -1,253 +1,380 @@
-using Analiz.Application.Feature;
 using Analiz.Application.Interfaces;
+using Analiz.Application.Interfaces.ML;
 using Analiz.Application.Interfaces.Repositories;
 using Analiz.Domain.Entities;
 using Analiz.Domain.Entities.ML;
-using Analiz.Domain.Events;
-using Analiz.ML.Utils;
+using Analiz.Domain.ValueObjects;
 using FraudShield.TransactionAnalysis.Domain.Enums;
-using MediatR;
 using Microsoft.Extensions.Logging;
+using Microsoft.ML;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace Analiz.Application.Services;
-
-public class FraudDetectionService : IFraudDetectionService
+namespace Analiz.Application.Services
 {
-    private readonly IModelService _modelService;
-    private readonly IRiskScoringService _riskScoring;
-    private readonly IFeatureExtractionService _featureExtractor;
-    private readonly ITransactionRepository _transactionRepository;
-    private readonly ILogger<FraudDetectionService> _logger;
-    private readonly IPublisher _publisher;
-
-    public FraudDetectionService(
-        IModelService modelService,
-        IRiskScoringService riskScoring,
-        IFeatureExtractionService featureExtractor,
-        ITransactionRepository transactionRepository,
-        ILogger<FraudDetectionService> logger,
-        IPublisher publisher)
+    public class FraudDetectionService : IFraudDetectionService
     {
-        _modelService = modelService;
-        _riskScoring = riskScoring;
-        _featureExtractor = featureExtractor;
-        _transactionRepository = transactionRepository;
-        _logger = logger;
-        _publisher = publisher;
-    }
+        private readonly IModelService _modelService;
+        private readonly IFeatureExtractionService _featureExtractor;
+        private readonly IFraudRuleEngine _ruleEngine;
+        private readonly ITransactionRepository _transactionRepository;
+        private readonly IAnalysisResultRepository _analysisRepository;
+        private readonly IFraudRuleRepository _ruleRepository;
+        private readonly IFraudAlertRepository _alertRepository;
+        private readonly ILogger<FraudDetectionService> _logger;
+        
+        // Threshold configurations
+        private const double HIGH_RISK_THRESHOLD = 0.8;
+        private const double MEDIUM_RISK_THRESHOLD = 0.5;
+        private const double ANOMALY_THRESHOLD = 2.5;
+        
+        public FraudDetectionService(
+            IModelService modelService,
+            IFeatureExtractionService featureExtractor,
+            IFraudRuleEngine ruleEngine,
+            ITransactionRepository transactionRepository,
+            IAnalysisResultRepository analysisRepository,
+            IFraudRuleRepository ruleRepository,
+            IFraudAlertRepository alertRepository,
+            ILogger<FraudDetectionService> logger)
+        {
+            _modelService = modelService ?? throw new ArgumentNullException(nameof(modelService));
+            _featureExtractor = featureExtractor ?? throw new ArgumentNullException(nameof(featureExtractor));
+            _ruleEngine = ruleEngine ?? throw new ArgumentNullException(nameof(ruleEngine));
+            _transactionRepository = transactionRepository ?? throw new ArgumentNullException(nameof(transactionRepository));
+            _analysisRepository = analysisRepository ?? throw new ArgumentNullException(nameof(analysisRepository));
+            _ruleRepository = ruleRepository ?? throw new ArgumentNullException(nameof(ruleRepository));
+            _alertRepository = alertRepository ?? throw new ArgumentNullException(nameof(alertRepository));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
 
-   
-
-    public async Task<List<AnalysisResult>> AnalyzeBatchAsync(List<TransactionRequest> requests)
-    {
-        var results = new List<AnalysisResult>();
-        foreach (var request in requests)
+        public async Task<AnalysisResult> AnalyzeTransactionAsync(TransactionRequest request)
         {
             try
+            {
+                _logger.LogInformation("Analyzing transaction {TransactionId}", request.TransactionId);
+                
+                // 1. Store the transaction
+                await _transactionRepository.AddAsync(
+                    Transaction.Create(
+                        request.TransactionData.TransactionId,
+                        request.TransactionData.UserId,
+                        request.TransactionData.Amount,
+                        request.TransactionData.MerchantId,
+                        request.TransactionData.Timestamp,
+                        request.TransactionData.Type,
+                        request.TransactionData.Location));
+                
+                // 2. Perform ML-based risk evaluation
+                var riskEvaluation = await EvaluateRiskAsync(request.TransactionData);
+                
+                // 3. Apply fraud rules
+                var ruleResults = await _ruleEngine.EvaluateRulesAsync(request.TransactionData);
+                
+                // 4. Combine ML and rule-based evaluations
+                var finalDecision = DetermineDecision(riskEvaluation, ruleResults);
+                
+                // 5. Create analysis result
+                var analysisResult = AnalysisResult.Create(
+                    request.TransactionId,
+                    riskEvaluation.AnomalyScore,
+                    riskEvaluation.FraudProbability,
+                    riskEvaluation.RiskScore,
+                    finalDecision);
+                
+                // 6. Add risk factors
+                foreach (var factor in riskEvaluation.RiskFactors)
+                {
+                    analysisResult.AddRiskFactor(factor);
+                }
+                
+                // Add rule-based risk factors
+                foreach (var ruleResult in ruleResults.Where(r => r.IsTriggered))
+                {
+                    analysisResult.AddRiskFactor(RiskFactor.Create(
+                        RiskFactorType.RuleViolation,
+                        $"Rule violated: {ruleResult.RuleName}",
+                        ruleResult.Confidence));
+                }
+                
+                // 7. Create alerts if needed
+                if (finalDecision == DecisionType.Deny || finalDecision == DecisionType.ReviewRequired)
+                {
+                    await CreateFraudAlertAsync(request.TransactionData, analysisResult);
+                }
+                
+                // 8. Save analysis result
+                await _analysisRepository.AddAsync(analysisResult);
+                
+                return analysisResult;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error analyzing transaction {TransactionId}", request.TransactionId);
+                return AnalysisResult.CreateFailed(request.TransactionId, ex.Message);
+            }
+        }
+
+        public async Task<List<AnalysisResult>> AnalyzeBatchAsync(List<TransactionRequest> requests)
+        {
+            var results = new List<AnalysisResult>();
+            
+            foreach (var request in requests)
             {
                 var result = await AnalyzeTransactionAsync(request);
                 results.Add(result);
             }
+            
+            return results;
+        }
+
+        public async Task<AnalysisResult> GetAnalysisResultAsync(Guid analysisId)
+        {
+            return await _analysisRepository.GetByIdAsync(analysisId);
+        }
+
+        public async Task<RiskEvaluation> EvaluateRiskAsync(TransactionData data)
+        {
+            try
+            {
+                // 1. Extract features
+                var features = await _featureExtractor.ExtractFeaturesAsync(data, ModelType.Ensemble);
+                
+                // 2. Create model input
+                var modelInput = new ModelInput
+                {
+                    Features = features.ToVector()
+                };
+                
+                // 3. Get LightGBM prediction (supervised - probability based)
+                var lightGbmTransformer = await _modelService.GetModelTransformerAsync("CreditCard_FraudDetection_LightGBM");
+                var lightGbmPrediction = _modelService.PredictSingle(lightGbmTransformer, modelInput);
+                
+                // 4. Get PCA prediction (unsupervised - anomaly based)
+                var pcaTransformer = await _modelService.GetModelTransformerAsync("CreditCard_AnomalyDetection_PCA");
+                var pcaPrediction = _modelService.PredictSingle(pcaTransformer, modelInput);
+                
+                // 5. Get ensemble prediction (if available)
+                double ensembleProbability = 0;
+                try
+                {
+                    var ensembleTransformer = await _modelService.GetModelTransformerAsync("CreditCard_FraudDetection_Ensemble");
+                    var ensemblePrediction = _modelService.PredictSingle(ensembleTransformer, modelInput);
+                    ensembleProbability = ensemblePrediction.Probability;
+                }
+                catch
+                {
+                    // If ensemble model is not available, use weighted average
+                    ensembleProbability = lightGbmPrediction.Probability * 0.7 + (pcaPrediction.AnomalyScore > ANOMALY_THRESHOLD ? 1.0 : 0.0) * 0.3;
+                }
+                
+                // 6. Determine risk score
+                var riskScore = DetermineRiskScore(
+                    lightGbmProbability: lightGbmPrediction.Probability,
+                    anomalyScore: pcaPrediction.AnomalyScore,
+                    ensembleProbability: ensembleProbability);
+                
+                // 7. Identify risk factors
+                var riskFactors = IdentifyRiskFactors(data, lightGbmPrediction, pcaPrediction);
+                
+                return new RiskEvaluation
+                {
+                    FraudProbability = ensembleProbability,
+                    AnomalyScore = pcaPrediction.AnomalyScore,
+                    RiskScore = riskScore,
+                    RiskFactors = riskFactors
+                };
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error analyzing transaction in batch {TransactionId}", 
-                    request.TransactionId);
+                _logger.LogError(ex, "Error evaluating risk for transaction");
+                throw new InvalidOperationException("Failed to evaluate transaction risk", ex);
+            }
+        }
+
+        public async Task<bool> UpdateFraudRulesAsync(List<FraudRule> rules)
+        {
+            try
+            {
+                // Get existing rules
+                var existingRules = await _ruleRepository.GetAllAsync();
+                
+                foreach (var rule in rules)
+                {
+                    var existingRule = existingRules.FirstOrDefault(r => r.RuleId == rule.RuleId);
+                    
+                    if (existingRule != null)
+                    {
+                        // Update existing rule
+                        existingRule.Update(rule);
+                        await _ruleRepository.UpdateAsync(existingRule);
+                    }
+                    else
+                    {
+                        // Add new rule
+                        await _ruleRepository.AddAsync(rule);
+                    }
+                }
+                
+                // Reload rules in the rule engine
+                await _ruleEngine.ReloadRulesAsync();
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating fraud rules");
+                return false;
+            }
+        }
+
+        public async Task<List<FraudAlert>> GetActiveAlertsAsync()
+        {
+            return await _alertRepository.GetActiveAlertsAsync();
+        }
+        
+        #region Helper Methods
+        
+        private RiskScore DetermineRiskScore(double lightGbmProbability, double anomalyScore, double ensembleProbability)
+        {
+            // Weighted determination based on multiple signals
+            if (ensembleProbability > HIGH_RISK_THRESHOLD || 
+                (lightGbmProbability > HIGH_RISK_THRESHOLD && anomalyScore > ANOMALY_THRESHOLD))
+            {
+                return RiskScore.High;
+            }
             
-                results.Add(AnalysisResult.CreateFailed(request.TransactionId, ex.Message));
-            }
-        }
-        return results;
-    }
-
-
-    public async Task<AnalysisResult> GetAnalysisResultAsync(Guid analysisId)
-    {
-        return await _transactionRepository.GetAnalysisResultAsync(analysisId);
-    }
-
-    public async Task<RiskEvaluation> EvaluateRiskAsync(TransactionData data)
-    {
-        var features = await _featureExtractor.ExtractFeaturesAsync(data);
-        var riskScore = await _riskScoring.CalculateRiskScoreAsync(data);
-        var riskFactors = await _riskScoring.GetRiskFactorsAsync(data.TransactionId);
-
-        return new RiskEvaluation
-        {
-            TransactionId = data.TransactionId,
-            RiskScore = riskScore,
-            RiskFactors = riskFactors,
-            UserRiskProfile = await _riskScoring.GetUserRiskProfileAsync(data.UserId),
-            EvaluatedAt = DateTime.UtcNow
-        };
-    }
-
-    public async Task<bool> UpdateFraudRulesAsync(List<FraudRule> rules)
-    {
-        try
-        {
-            // Kural validasyonu
-            if (!ValidateFraudRules(rules))
-                return false;
-
-            // Kuralları güncelle
-            foreach (var rule in rules)
+            if (ensembleProbability > MEDIUM_RISK_THRESHOLD || 
+                (lightGbmProbability > MEDIUM_RISK_THRESHOLD && anomalyScore > ANOMALY_THRESHOLD * 0.7))
             {
-                await UpdateRule(rule);
+                return RiskScore.Medium;
             }
-
-            // Event yayınla
-            await _publisher.Publish(new FraudRulesUpdatedEvent(rules));
-
-            return true;
+            
+            return RiskScore.Low;
         }
-        catch (Exception ex)
+        
+        private List<RiskFactor> IdentifyRiskFactors(
+            TransactionData data, 
+            ModelPrediction lightGbmPrediction, 
+            ModelPrediction pcaPrediction)
         {
-            _logger.LogError(ex, "Error updating fraud rules");
-            return false;
-        }
-    }
-
-    public async Task<List<FraudAlert>> GetActiveAlertsAsync()
-    {
-        return await _transactionRepository.GetActiveAlertsAsync();
-    }
-    
-    
-    public async Task<AnalysisResult> AnalyzeTransactionAsync(TransactionRequest request)
-    {
-        try
-        {
-            _logger.LogInformation("Starting fraud analysis for transaction {TransactionId}", 
-                request.TransactionId);
-
-            var features = await _featureExtractor.ExtractFeaturesAsync(request.TransactionData);
-            var anomalyScore = await DetectAnomaliesAsync(features);
-            var fraudProbability = await ClassifyTransactionAsync(features);
-            var riskScore = await _riskScoring.CalculateRiskScoreAsync(request.TransactionData);
-            var riskFactors = await _riskScoring.GetRiskFactorsAsync(request.TransactionId);
-            var decision = MakeFinalDecision(anomalyScore, fraudProbability, riskScore);
-
-            var result = AnalysisResult.Create(
-                request.TransactionId,
-                anomalyScore,
-                fraudProbability,
-                riskScore,
-                decision);
-
-            foreach (var factor in riskFactors)
+            var factors = new List<RiskFactor>();
+            
+            // Extract top contributing features from the ML model
+            if (lightGbmPrediction.Metadata.TryGetValue("TopFeatures", out var topFeaturesObj))
             {
-                result.AddRiskFactor(factor);
+                string[] topFeatures = topFeaturesObj.ToString().Split(',');
+                foreach (var feature in topFeatures)
+                {
+                    factors.Add(RiskFactor.Create(
+                        RiskFactorType.ModelFeature,
+                        $"Contributing feature: {feature}",
+                        lightGbmPrediction.Probability));
+                }
             }
-
-            if (IsHighRiskTransaction(result))
+            
+            // Add anomaly detection as a risk factor if significant
+            if (pcaPrediction.AnomalyScore > ANOMALY_THRESHOLD)
             {
-                await PublishHighRiskAlert(request, result, riskFactors);
+                factors.Add(RiskFactor.Create(
+                    RiskFactorType.AnomalyDetection,
+                    $"Unusual transaction pattern detected (score: {pcaPrediction.AnomalyScore:F2})",
+                    Math.Min(pcaPrediction.AnomalyScore / (ANOMALY_THRESHOLD * 2), 1.0)));
             }
-
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error analyzing transaction {TransactionId}", 
-                request.TransactionId);
-            return AnalysisResult.CreateFailed(request.TransactionId, ex.Message);
-        }
-    }
-    private async Task PublishHighRiskAlert(
-        TransactionRequest request, 
-        AnalysisResult result, 
-        List<RiskFactor> riskFactors)
-    {
-        await _publisher.Publish(new HighRiskTransactionDetectedEvent(
-            request.TransactionId,
-            request.TransactionData.UserId,
-            result.RiskScore,
-            riskFactors.Select(f => f.Description).ToList()));
-    }
-
-    private async Task<double> DetectAnomaliesAsync(FeatureSet features)
-    {
-        var prediction = await _modelService.PredictAsync(
-            "AnomalyDetection_PCA",
-            new ModelInput { Features = features.ToVector() });
-
-        return prediction.Score;
-    }
-
-    private async Task<double> ClassifyTransactionAsync(FeatureSet features)
-    {
-        var prediction = await _modelService.PredictAsync(
-            "FraudDetection_LightGBM",
-            new ModelInput { Features = features.ToVector() });
-
-        return prediction.Probability;
-    }
-
-    private DecisionType MakeFinalDecision(
-        double anomalyScore, 
-        double fraudProbability, 
-        RiskScore riskScore)
-    {
-        if (riskScore.Level == RiskLevel.Critical || 
-            fraudProbability > 0.9 || 
-            anomalyScore > 0.95)
-        {
-            return DecisionType.Block;
-        }
-
-        if (riskScore.Level == RiskLevel.High || 
-            fraudProbability > 0.7 || 
-            anomalyScore > 0.85)
-        {
-            return DecisionType.ReviewRequired;
-        }
-
-        return DecisionType.Allow;
-    }
-
-    private bool IsHighRiskTransaction(AnalysisResult result)
-    {
-        return result.RiskScore?.Level >= RiskLevel.High ||
-               result.FraudProbability > 0.8 ||
-               result.AnomalyScore > 0.9;
-    }
-
-    private bool ValidateFraudRules(List<FraudRule> rules)
-    {
-        if (rules == null || !rules.Any())
-        {
-            _logger.LogWarning("No rules provided for validation");
-            return false;
-        }
-
-        foreach (var rule in rules)
-        {
-            if (!IsValidRule(rule))
+            
+            // Check for amount-related risks
+            if (data.Amount > 1000)
             {
-                _logger.LogWarning("Invalid rule detected: {RuleId}", rule.RuleId);
-                return false;
+                factors.Add(RiskFactor.Create(
+                    RiskFactorType.HighValue,
+                    $"High value transaction (${data.Amount})",
+                    Math.Min((double)data.Amount / 10000, 1.0)));
+            }
+            
+            // Add location-based risks if applicable
+            if (data.Location != null && data.Location.IsHighRiskRegion)
+            {
+                factors.Add(RiskFactor.Create(
+                    RiskFactorType.Location,
+                    $"Transaction from high-risk region ({data.Location.Country})",
+                    0.7));
+            }
+            
+            return factors;
+        }
+        
+        private DecisionType DetermineDecision(
+            RiskEvaluation riskEvaluation, 
+            IEnumerable<RuleResult> ruleResults)
+        {
+            // Check for rule-enforced decisions first
+            var blockRule = ruleResults.FirstOrDefault(r => 
+                r.IsTriggered && r.Action == RuleAction.Block);
+                
+            if (blockRule != null)
+            {
+                return DecisionType.Deny;
+            }
+            
+            var reviewRule = ruleResults.FirstOrDefault(r => 
+                r.IsTriggered && r.Action == RuleAction.Review);
+                
+            if (reviewRule != null)
+            {
+                return DecisionType.ReviewRequired;
+            }
+            
+            // If no rules enforced a decision, use ML-based risk evaluation
+            switch (riskEvaluation.RiskScore)
+            {
+                case RiskScore.High:
+                    return DecisionType.Deny;
+                    
+                case RiskScore.Medium:
+                    return DecisionType.ReviewRequired;
+                    
+                default:
+                    return DecisionType.Approve;
             }
         }
-
-        return true;
-    }
-
-    private bool IsValidRule(FraudRule rule)
-    {
-        return !string.IsNullOrEmpty(rule.RuleId) &&
-               !string.IsNullOrEmpty(rule.Condition) &&
-               rule.Action != null;
-    }
-
-    private async Task UpdateRule(FraudRule rule)
-    {
-        var parsedRule = RuleParser.Parse(rule.Condition);
-        if (!parsedRule.IsValid)
+        
+        private async Task CreateFraudAlertAsync(TransactionData data, AnalysisResult result)
         {
-            throw new Exception( "Invalid rule condition");
+            var alert = FraudAlert.Create(
+                data.TransactionId,
+                result.Id,
+                result.RiskScore == RiskScore.High ? AlertSeverity.High : AlertSeverity.Medium,
+                $"Potential fraud detected for transaction {data.TransactionId}",
+                GenerateAlertDetails(data, result));
+                
+            await _alertRepository.AddAsync(alert);
         }
-
-        await _transactionRepository.UpdateFraudRuleAsync(rule);
-        _logger.LogInformation("Updated fraud rule: {RuleId}", rule.RuleId);
+        
+        private string GenerateAlertDetails(TransactionData data, AnalysisResult result)
+        {
+            var details = new System.Text.StringBuilder();
+            
+            details.AppendLine($"Transaction ID: {data.TransactionId}");
+            details.AppendLine($"Amount: ${data.Amount}");
+            details.AppendLine($"User ID: {data.UserId}");
+            details.AppendLine($"Merchant: {data.MerchantId}");
+            details.AppendLine($"Timestamp: {data.Timestamp}");
+            details.AppendLine($"Fraud Probability: {result.FraudProbability:P2}");
+            details.AppendLine($"Anomaly Score: {result.AnomalyScore:F2}");
+            details.AppendLine($"Risk Score: {result.RiskScore}");
+            details.AppendLine($"Decision: {result.Decision}");
+            details.AppendLine("Risk Factors:");
+            
+            foreach (var factor in result.RiskFactors)
+            {
+                details.AppendLine($" - {factor.Description} (Confidence: {factor.Confidence:P2})");
+            }
+            
+            return details.ToString();
+        }
+        
+        #endregion
     }
 }

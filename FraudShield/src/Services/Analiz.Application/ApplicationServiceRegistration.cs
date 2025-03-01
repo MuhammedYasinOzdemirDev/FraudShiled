@@ -23,7 +23,7 @@ public static class ApplicationServiceRegistration
         services.AddScoped<IFraudDetectionService, FraudDetectionService>();
         services.AddScoped<IRiskScoringService, RiskScoringService>();
         services.AddScoped<IFeatureExtractionService, FeatureEngineeringService>();
-      
+        services.AddScoped<IFraudRuleEngine, FraudRuleEngine>();
         services.Configure<PCAConfiguration>(configuration.GetSection("PCAConfiguration"));
         services.Configure<LightGBMConfiguration>(configuration.GetSection("LightGBMConfiguration"));
         
